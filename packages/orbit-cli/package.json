@@ -1,0 +1,32 @@
+{
+  "name": "orbit-cli",
+  "version": "0.1.0",
+  "description": "Orbit — Google Workspace AI assistant for your terminal",
+  "bin": {
+    "orbit": "./bin/orbit.mjs"
+  },
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "better-sqlite3": "^11.7.0",
+    "drizzle-orm": "^0.38.0",
+    "nanoid": "^5.0.9",
+    "zod": "^3.24.0",
+    "zod-to-json-schema": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin/",
+    "dist/"
+  ]
+}

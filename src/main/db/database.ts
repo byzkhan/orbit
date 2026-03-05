@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
-import { app } from 'electron'
 import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
+import { getPlatform } from '../../core/platform'
 import * as schema from './schema'
 
 let db: ReturnType<typeof drizzle> | null = null
@@ -11,7 +11,7 @@ let sqlite: Database.Database | null = null
 export function getDb() {
   if (db) return db
 
-  const userDataPath = app.getPath('userData')
+  const userDataPath = getPlatform().userDataPath
   if (!existsSync(userDataPath)) {
     mkdirSync(userDataPath, { recursive: true })
   }
