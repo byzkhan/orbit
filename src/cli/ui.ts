@@ -92,38 +92,14 @@ export function createSpinner(msg: string) {
 
 export function maskedInput(prompt: string): Promise<string> {
   return new Promise((resolve) => {
-    process.stdout.write(`   ${prompt}`)
-    const stdin = process.stdin
-    const wasRaw = stdin.isRaw
-    if (stdin.isTTY) stdin.setRawMode(true)
-    stdin.resume()
-    stdin.setEncoding('utf-8')
-
-    let input = ''
-    const onData = (ch: string) => {
-      const char = ch.toString()
-      if (char === '\n' || char === '\r') {
-        stdin.removeListener('data', onData)
-        if (stdin.isTTY) stdin.setRawMode(wasRaw ?? false)
-        stdin.pause()
-        process.stdout.write('\n')
-        resolve(input)
-      } else if (char === '\u007f' || char === '\b') {
-        // backspace
-        if (input.length > 0) {
-          input = input.slice(0, -1)
-          process.stdout.write('\b \b')
-        }
-      } else if (char === '\u0003') {
-        // Ctrl+C
-        process.stdout.write('\n')
-        process.exit(0)
-      } else if (char >= ' ') {
-        input += char
-        process.stdout.write('\u2022')
-      }
-    }
-    stdin.on('data', onData)
+    const rl = createInterface({ input: process.stdin, output: process.stdout })
+    rl.question(`   ${prompt}`, (answer) => {
+      rl.close()
+      // Move up one line, rewrite the prompt with masked value
+      const masked = answer.length > 0 ? '\u2022'.repeat(Math.min(answer.length, 40)) : ''
+      process.stdout.write(`\x1b[1A\r   ${prompt}${masked}\x1b[K\n`)
+      resolve(answer.trim())
+    })
   })
 }
 
