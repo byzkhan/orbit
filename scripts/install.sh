@@ -92,28 +92,31 @@ fi
 
 # ── Install Orbit CLI ──────────────────────────────────────────────────────
 
+ORBIT_HOME="${HOME}/.orbit/source"
+
 if command -v orbit &> /dev/null; then
   ok "orbit CLI already installed"
 else
   info "Installing Orbit CLI..."
 
-  ORBIT_TMP=$(mktemp -d)
-  trap 'rm -rf "$ORBIT_TMP"' EXIT
+  # Clone to persistent location
+  rm -rf "$ORBIT_HOME"
+  mkdir -p "$ORBIT_HOME"
 
-  git clone --depth 1 https://github.com/byzkhan/orbit.git "$ORBIT_TMP/orbit" 2>/dev/null || {
+  git clone --depth 1 https://github.com/byzkhan/orbit.git "$ORBIT_HOME" 2>/dev/null || {
     fail "Could not clone Orbit repository"
     printf "   Make sure you have access to the Orbit repo.\n"
     exit 1
   }
 
-  cd "$ORBIT_TMP/orbit"
+  cd "$ORBIT_HOME"
   npm install --ignore-scripts > /dev/null 2>&1
   cd packages/orbit-cli
   npm install > /dev/null 2>&1
   npx tsup > /dev/null 2>&1
   npm link > /dev/null 2>&1 || {
     fail "Could not link orbit CLI"
-    printf "   Try: ${CYAN}cd packages/orbit-cli && npm link${RESET}\n"
+    printf "   Try: ${CYAN}cd ~/.orbit/source/packages/orbit-cli && npm link${RESET}\n"
     exit 1
   }
 
