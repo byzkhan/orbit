@@ -100,7 +100,7 @@ else
   ORBIT_TMP=$(mktemp -d)
   trap 'rm -rf "$ORBIT_TMP"' EXIT
 
-  git clone --depth 1 https://github.com/nicepkg/orbit.git "$ORBIT_TMP/orbit" 2>/dev/null || {
+  git clone --depth 1 https://github.com/byzkhan/orbit.git "$ORBIT_TMP/orbit" 2>/dev/null || {
     fail "Could not clone Orbit repository"
     printf "   Make sure you have access to the Orbit repo.\n"
     exit 1
