@@ -36,7 +36,7 @@ orbit --help       Show help
 
 ## Desktop App
 
-The Orbit desktop app (Electron + React) is working but still under active development. Coming soon.
+The Orbit desktop app coming soon
 
 ## Requirements
 
