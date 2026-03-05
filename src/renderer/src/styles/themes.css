@@ -1,0 +1,25 @@
+/* Dark theme (default) */
+[data-theme='dark'] {
+  --orbit-bg: #0e0e0f;
+  --orbit-surface: #1a1a1c;
+  --orbit-border: #2a2a2d;
+  --orbit-text: #e8e6e3;
+  --orbit-text-secondary: #9a9a9d;
+  --orbit-accent: #d4a853;
+  --orbit-accent-hover: #e0b965;
+  --orbit-error: #e05252;
+  --orbit-success: #4caf7d;
+}
+
+/* Light theme (future) */
+[data-theme='light'] {
+  --orbit-bg: #fafaf9;
+  --orbit-surface: #ffffff;
+  --orbit-border: #e5e5e3;
+  --orbit-text: #1a1a1c;
+  --orbit-text-secondary: #6b6b6e;
+  --orbit-accent: #b8892e;
+  --orbit-accent-hover: #a07825;
+  --orbit-error: #dc3545;
+  --orbit-success: #3d9b6a;
+}
