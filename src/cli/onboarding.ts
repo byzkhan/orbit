@@ -129,9 +129,14 @@ async function step2GoogleCloud(): Promise<boolean> {
 
   const state = await getGwsAuthState()
   if (state.hasClientConfig) {
-    console.log(`   ${c.green}\u2713${c.reset} OAuth credentials already configured`)
+    console.log(`   ${c.dim}Existing OAuth credentials found.${c.reset}`)
+    const keepExisting = await confirm('Keep existing OAuth config?')
+    if (keepExisting) {
+      console.log(`   ${c.green}\u2713${c.reset} Using existing OAuth credentials`)
+      console.log()
+      return true
+    }
     console.log()
-    return true
   }
 
   console.log(`   ${c.dim}Create a Google Cloud OAuth client:${c.reset}`)
