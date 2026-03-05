@@ -1,24 +1,31 @@
 {
   "compilerOptions": {
-    "composite": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "strict": true,
-    "outDir": "./out",
+    "outDir": "./out/cli",
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/shared/*"]
-    }
+    },
+    "skipLibCheck": true
   },
   "include": [
-    "src/main/**/*",
-    "src/preload/**/*",
-    "src/shared/**/*",
+    "src/cli/**/*",
     "src/core/**/*",
-    "electron.vite.config.ts"
+    "src/main/agent/**/*",
+    "src/main/auth/**/*",
+    "src/main/db/**/*",
+    "src/main/tools/**/*",
+    "src/shared/**/*"
+  ],
+  "exclude": [
+    "src/main/index.ts",
+    "src/main/window.ts",
+    "src/main/ipc/**/*"
   ]
 }
