@@ -12,6 +12,8 @@
     "build:win": "electron-vite build && electron-builder --win",
     "build:linux": "electron-vite build && electron-builder --linux",
     "cli": "tsx --tsconfig tsconfig.cli.json src/cli/index.ts",
+    "cli:build": "cd packages/orbit-cli && npx tsup",
+    "cli:link": "cd packages/orbit-cli && npm install && npx tsup && npm link",
     "rebuild:cli": "npm rebuild better-sqlite3",
     "rebuild:electron": "npx electron-rebuild -f -w better-sqlite3"
   },
@@ -41,6 +43,7 @@
     "electron-vite": "^5.0.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
+    "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.0"
