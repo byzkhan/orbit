@@ -5,6 +5,8 @@ import { homedir } from 'os'
 import { execSync } from 'child_process'
 import { setPlatform } from '../core/platform'
 import type { AgentEvent } from '@shared/types'
+import { getStoredApiKey, isOnboardingComplete, resetConfig } from './config'
+import { c } from './ui'
 
 // ── Platform setup ──────────────────────────────────────────────────────────
 
@@ -34,7 +36,7 @@ function openUrl(url: string): void {
 setPlatform({
   userDataPath: ORBIT_DIR,
   gwsConfigDir: resolveGwsConfigDir(),
-  getApiKey: () => process.env.ANTHROPIC_API_KEY || null,
+  getApiKey: () => process.env.ANTHROPIC_API_KEY || getStoredApiKey(),
   confirmDangerous: async (toolName: string, description: string, _toolUseId: string) => {
     return new Promise((resolve) => {
       const rl = createInterface({ input: process.stdin, output: process.stderr })
@@ -56,19 +58,7 @@ import { getApiKey } from '../main/auth/key-store'
 import * as sessionRepo from '../main/db/session-repo'
 import { getDb } from '../main/db/database'
 import { checkGwsAuth } from '../main/auth/gws-auth'
-
-// ── ANSI helpers ────────────────────────────────────────────────────────────
-
-const c = {
-  reset: '\x1b[0m',
-  dim: '\x1b[2m',
-  bold: '\x1b[1m',
-  amber: '\x1b[33m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  cyan: '\x1b[36m',
-  magenta: '\x1b[35m',
-}
+import { runOnboarding } from './onboarding'
 
 // ── CLI Agent Runner ────────────────────────────────────────────────────────
 
@@ -147,25 +137,92 @@ function truncate(str: string, max: number): string {
   return oneLine.slice(0, max - 3) + '...'
 }
 
+// ── CLI flags ───────────────────────────────────────────────────────────────
+
+function printHelp(): void {
+  console.log(`
+${c.bold}${c.amber}Orbit${c.reset} ${c.dim}— Google Workspace AI Assistant${c.reset}
+
+${c.bold}Usage:${c.reset}
+  orbit              Start Orbit (runs setup on first launch)
+  orbit --setup      Re-run onboarding (skips already-done steps)
+  orbit --reset      Clear config and re-run onboarding
+  orbit --version    Print version
+  orbit --help       Show this help
+
+${c.bold}Environment:${c.reset}
+  ANTHROPIC_API_KEY  API key (overrides stored key)
+  ORBIT_DATA_DIR     Data directory (default: ~/.orbit)
+`)
+}
+
+function printVersion(): void {
+  try {
+    const pkg = require('../../package.json')
+    console.log(`orbit ${pkg.version || '0.1.0'}`)
+  } catch {
+    console.log('orbit 0.1.0')
+  }
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  console.log(`${c.bold}${c.amber}Orbit CLI${c.reset} ${c.dim}— Google Workspace AI Assistant${c.reset}`)
-  console.log(`${c.dim}Type your message, or "exit" to quit.${c.reset}\n`)
+  const args = process.argv.slice(2)
+
+  if (args.includes('--help') || args.includes('-h')) {
+    printHelp()
+    process.exit(0)
+  }
+
+  if (args.includes('--version') || args.includes('-v')) {
+    printVersion()
+    process.exit(0)
+  }
+
+  const forceSetup = args.includes('--setup')
+  const forceReset = args.includes('--reset')
+
+  if (forceReset) {
+    resetConfig()
+    console.log(`${c.dim}Config cleared.${c.reset}`)
+  }
+
+  // Non-interactive check: skip onboarding if stdin is not a TTY
+  const isInteractive = process.stdin.isTTY
+
+  // Determine if onboarding is needed
+  const needsOnboarding = forceSetup || forceReset || !isOnboardingComplete()
+
+  if (needsOnboarding) {
+    if (!isInteractive) {
+      console.warn(`${c.amber}Warning: Non-interactive mode detected. Skipping onboarding.${c.reset}`)
+      console.warn(`${c.amber}Run 'orbit --setup' interactively to complete setup.${c.reset}\n`)
+    } else {
+      const ok = await runOnboarding()
+      if (!ok) {
+        console.error(`\n${c.red}Setup incomplete. Run 'orbit --setup' to try again.${c.reset}`)
+        process.exit(1)
+      }
+    }
+  }
 
   // Preflight checks
   const apiKey = getApiKey()
   if (!apiKey) {
-    console.error(`${c.red}No API key found.${c.reset} Set ANTHROPIC_API_KEY environment variable.`)
+    console.error(`${c.red}No API key found.${c.reset} Run 'orbit --setup' or set ANTHROPIC_API_KEY.`)
     process.exit(1)
   }
+
+  console.log(`${c.bold}${c.amber}Orbit CLI${c.reset} ${c.dim}— Google Workspace AI Assistant${c.reset}`)
+  console.log(`${c.dim}Type your message, or "exit" to quit.${c.reset}\n`)
 
   // Init DB (creates tables)
   getDb()
 
   const gwsOk = await checkGwsAuth()
   if (!gwsOk) {
-    console.warn(`${c.amber}Warning: gws not authenticated. Run "gws auth login" first for Google Workspace access.${c.reset}\n`)
+    console.warn(`${c.amber}Warning: gws not authenticated. Run 'orbit --setup' for guided setup.${c.reset}\n`)
   }
 
   // Create a session for this CLI run
