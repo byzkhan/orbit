@@ -1,10 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { getApiKey } from '../auth/key-store'
+import { getPlatform } from '../../core/platform'
 import { commandRegistry } from '../tools/command-registry'
 import { gwsExecutor } from '../tools/gws-executor'
 import { handleInternalTool } from '../tools/internal-tools'
 import { buildSystemPrompt } from './system-prompt'
-import { waitForConfirmation, resolveConfirmation as resolveConf } from './confirmation-gate'
+import { resolveConfirmation as resolveConf } from './confirmation-gate'
 import * as sessionRepo from '../db/session-repo'
 import * as messageRepo from '../db/message-repo'
 import * as toolExecRepo from '../db/tool-execution-repo'
@@ -135,13 +136,17 @@ export async function runAgentLoop(
 
           // Gate dangerous commands
           if (commandRegistry.isDangerous(block.name)) {
+            const description = `Execute ${block.name} with params: ${JSON.stringify(input).slice(0, 200)}`
+
             emit({
               type: 'confirmation_required',
               toolUseId: block.id,
               toolName: block.name,
-              description: `Execute ${block.name} with params: ${JSON.stringify(input).slice(0, 200)}`,
+              description,
             })
-            const approved = await waitForConfirmation(block.id)
+
+            // Platform handles confirmation: CLI prompts stdin, Electron uses IPC dialog
+            const approved = await getPlatform().confirmDangerous(block.name, description, block.id)
             if (!approved) {
               toolResults.push({
                 type: 'tool_result',

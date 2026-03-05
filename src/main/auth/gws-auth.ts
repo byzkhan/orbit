@@ -2,7 +2,7 @@ import { spawn } from 'child_process'
 import { createDecipheriv } from 'crypto'
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
-import { app } from 'electron'
+import { getPlatform } from '../../core/platform'
 import { resolveGwsPath } from '../tools/resolve-gws'
 
 export interface ApiVerificationResult {
@@ -12,7 +12,7 @@ export interface ApiVerificationResult {
 }
 
 function gwsConfigDir(): string {
-  return join(app.getPath('appData'), 'gws')
+  return getPlatform().gwsConfigDir
 }
 
 function clientSecretPath(): string {
@@ -148,8 +148,7 @@ export async function loginWithGoogle(): Promise<{ success: boolean; error?: str
     }
   }
 
-  // Import shell here to avoid top-level Electron import issues
-  const { shell } = await import('electron')
+  const platform = getPlatform()
 
   return new Promise((resolve) => {
     try {
@@ -165,25 +164,22 @@ export async function loginWithGoogle(): Promise<{ success: boolean; error?: str
 
       proc.stdout?.on('data', (d) => {
         stdout += d.toString()
-        // gws prints "Open this URL in your browser to authenticate:\n\n  https://..."
-        // Capture and auto-open the URL
         if (!urlOpened) {
           const urlMatch = stdout.match(/https:\/\/accounts\.google\.com\S+/)
           if (urlMatch) {
             urlOpened = true
-            shell.openExternal(urlMatch[0])
+            platform.openExternal(urlMatch[0])
           }
         }
       })
 
       proc.stderr?.on('data', (d) => {
         stderr += d.toString()
-        // gws may also print the URL to stderr
         if (!urlOpened) {
           const urlMatch = stderr.match(/https:\/\/accounts\.google\.com\S+/)
           if (urlMatch) {
             urlOpened = true
-            shell.openExternal(urlMatch[0])
+            platform.openExternal(urlMatch[0])
           }
         }
       })
