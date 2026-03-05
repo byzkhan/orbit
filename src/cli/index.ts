@@ -234,10 +234,17 @@ async function main(): Promise<void> {
     prompt: `${c.amber}orbit>${c.reset} `,
   })
 
-  // Handle Ctrl+C gracefully
+  // Handle Ctrl+C: first press cancels agent, second press exits
+  let lastSigint = 0
   rl.on('SIGINT', () => {
     cancelAgent(session.id)
-    process.stdout.write('\n')
+    const now = Date.now()
+    if (now - lastSigint < 1000) {
+      console.log(`\n${c.dim}Goodbye.${c.reset}`)
+      process.exit(0)
+    }
+    lastSigint = now
+    process.stdout.write(`\n${c.dim}Press Ctrl+C again to exit.${c.reset}\n`)
     rl.prompt()
   })
 
