@@ -82,7 +82,7 @@ if command -v gws &> /dev/null; then
   ok "gws CLI already installed"
 else
   info "Installing gws CLI..."
-  npm install -g @anthropic-ai/gws 2>/dev/null || npm install -g @googleworkspace/cli 2>/dev/null || {
+  npm install -g @anthropic-ai/gws > /dev/null 2>&1 || npm install -g @googleworkspace/cli > /dev/null 2>&1 || {
     fail "Could not install gws CLI"
     printf "   Try manually: ${CYAN}npm install -g @googleworkspace/cli${RESET}\n"
     exit 1
@@ -107,11 +107,11 @@ else
   }
 
   cd "$ORBIT_TMP/orbit"
-  npm install --ignore-scripts 2>/dev/null
+  npm install --ignore-scripts > /dev/null 2>&1
   cd packages/orbit-cli
-  npm install 2>/dev/null
-  npx tsup 2>/dev/null
-  npm link 2>/dev/null || {
+  npm install > /dev/null 2>&1
+  npx tsup > /dev/null 2>&1
+  npm link > /dev/null 2>&1 || {
     fail "Could not link orbit CLI"
     printf "   Try: ${CYAN}cd packages/orbit-cli && npm link${RESET}\n"
     exit 1
