@@ -94,9 +94,11 @@ fi
 
 ORBIT_HOME="${HOME}/.orbit/source"
 
-if command -v orbit &> /dev/null; then
-  ok "orbit CLI already installed"
+if orbit --version &> /dev/null; then
+  ok "orbit CLI already installed ($(orbit --version))"
 else
+  # Clean up any broken symlinks from previous installs
+  npm unlink -g orbit-cli > /dev/null 2>&1
   info "Installing Orbit CLI..."
 
   # Clone to persistent location
